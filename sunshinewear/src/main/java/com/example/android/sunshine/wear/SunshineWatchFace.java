@@ -31,6 +31,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
@@ -39,17 +41,29 @@ import android.view.WindowInsets;
 import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+
 /**
+ * referenced https://developer.android.com/training/wearables/watch-faces/
+ * https://catinean.com/2015/03/28/creating-a-watch-face-with-android-wear-api-part-2/
+ *
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
-//referenced https://developer.android.com/training/wearables/watch-faces/
 public class SunshineWatchFace extends CanvasWatchFaceService {
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
@@ -90,7 +104,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
     }
 
-    private class Engine extends CanvasWatchFaceService.Engine {
+    private class Engine extends CanvasWatchFaceService.Engine implements
+            GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        private GoogleApiClient googleApiClient;
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
@@ -134,11 +150,18 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, R.color.digital_text));
 
             mCalendar = Calendar.getInstance();
+
+            googleApiClient = new GoogleApiClient.Builder(SunshineWatchFace.this)
+                    .addApi(Wearable.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
         }
 
         @Override
         public void onDestroy() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
+            releaseGoogleApiClient();
             super.onDestroy();
         }
 
@@ -160,8 +183,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 // Update time zone in case it changed while we weren't visible.
                 mCalendar.setTimeZone(TimeZone.getDefault());
                 invalidate();
+                googleApiClient.connect();
             } else {
                 unregisterReceiver();
+                releaseGoogleApiClient();
             }
 
             // Whether the timer should be running depends on whether we're visible (as well as
@@ -304,14 +329,58 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
         }
-        //TODO modify to use wearable data layer
-        private class getWeatherData extends AsyncTask<Void, Void, WeatherContract.WeatherEntry>
-        {
-            @Override
-            protected WeatherContract.WeatherEntry doInBackground(Void... voids){
-                return new WeatherContract.WeatherEntry();
-            }
 
+        private void releaseGoogleApiClient() {
+            if (null != googleApiClient && googleApiClient.isConnected()) {
+                googleApiClient.disconnect();
+            }
+        }
+
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+            Wearable.DataApi.addListener(googleApiClient, onWeatherDataChangedListener);
+            Wearable.DataApi.getDataItems(googleApiClient).setResultCallback(onConnectedResultCallback);
+        }
+
+        private final DataApi.DataListener onWeatherDataChangedListener = new DataApi.DataListener() {
+            @Override
+            public void onDataChanged(DataEventBuffer dataEvents){
+                for (DataEvent event : dataEvents){
+                    if(event.getType() == DataEvent.TYPE_CHANGED){
+                        DataItem item = event.getDataItem();
+                        processDataFor(item);
+                    }
+                }
+                dataEvents.release();
+                //invalidateIfNecessary
+            }
+        };
+
+        private final ResultCallback<DataItemBuffer> onConnectedResultCallback = new ResultCallback<DataItemBuffer>(){
+            @Override
+            public void onResult(DataItemBuffer dataItems){
+                for (DataItem item : dataItems) {
+                    processDataFor(item);
+                }
+                dataItems.release();
+                //invalidateIfNecessary
+            }
+        };
+        
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+        }
+
+        //TODO modify to use wearable data layer
+        private void processDataFor(DataItem item)
+        {
+            WeatherContract.WeatherEntry weatherEntry;
         }
     }
 }
