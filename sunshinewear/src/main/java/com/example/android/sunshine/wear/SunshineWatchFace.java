@@ -26,6 +26,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,6 +37,8 @@ import android.support.wearable.watchface.WatchFaceStyle;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 import android.widget.Toast;
+
+import com.example.android.sunshine.app.data.WeatherContract;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -299,6 +303,15 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
+        }
+        //TODO modify to use wearable data layer
+        private class getWeatherData extends AsyncTask<Void, Void, WeatherContract.WeatherEntry>
+        {
+            @Override
+            protected WeatherContract.WeatherEntry doInBackground(Void... voids){
+                return new WeatherContract.WeatherEntry();
+            }
+
         }
     }
 }
