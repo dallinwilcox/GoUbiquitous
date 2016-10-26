@@ -367,6 +367,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-1))});
 
                 updateWidgets();
+                updateWear();
                 updateMuzei();
                 notifyWeather();
             }
@@ -386,6 +387,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
                 .setPackage(context.getPackageName());
         context.sendBroadcast(dataUpdatedIntent);
+    }
+
+    private void updateWear(){
+
     }
 
     private void updateMuzei() {
