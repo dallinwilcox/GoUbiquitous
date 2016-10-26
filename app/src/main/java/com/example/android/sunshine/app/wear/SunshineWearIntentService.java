@@ -11,7 +11,7 @@ public class SunshineWearIntentService extends IntentService {
     public SunshineWearIntentService() {
         super("SunshineWearIntentService");
     }
-    
+
     @Override
     protected void onHandleIntent(Intent intent) {
 

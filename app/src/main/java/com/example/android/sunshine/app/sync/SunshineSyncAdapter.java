@@ -36,6 +36,7 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
+import com.example.android.sunshine.app.wear.SunshineWearIntentService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -390,7 +391,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void updateWear(){
-
+        //per https://developers.google.com/android/guides/api-client#WearableApi
+        //wear data api is only available on Jelly Bean MR2+ (API level 18) and Higher
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            Context context = getContext();
+            context.startService(new Intent(ACTION_DATA_UPDATED)
+                    .setClass(context, SunshineWearIntentService.class));
+        }
     }
 
     private void updateMuzei() {
