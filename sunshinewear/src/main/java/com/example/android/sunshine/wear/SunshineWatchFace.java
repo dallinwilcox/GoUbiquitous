@@ -21,13 +21,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -36,21 +36,28 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 import android.widget.Toast;
 
+import com.example.android.sunshine.app.data.SunshineWearValues;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -58,8 +65,11 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * referenced https://developer.android.com/training/wearables/watch-faces/
+ * Referenced:
+ * https://developer.android.com/training/wearables/watch-faces/
+ * https://developer.android.com/training/wearables/data-layer/
  * https://catinean.com/2015/03/28/creating-a-watch-face-with-android-wear-api-part-2/
+ *
  *
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
@@ -111,8 +121,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
         Paint mTextPaint;
+        Paint mImagePaint;
         boolean mAmbient;
         Calendar mCalendar;
+        Bitmap weatherImage;
+        String minTemp;
+        String maxTemp;
+
+        String weatherDescription;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -146,9 +162,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             //referenced http://stackoverflow.com/a/32149275/2169923
             mBackgroundPaint.setColor(ContextCompat.getColor(SunshineWatchFace.this, R.color.background));
 
-            mTextPaint = new Paint();
             mTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, R.color.digital_text));
-
+            mImagePaint = new Paint();
             mCalendar = Calendar.getInstance();
 
             googleApiClient = new GoogleApiClient.Builder(SunshineWatchFace.this)
@@ -290,12 +305,19 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            String text = mAmbient
+            String time = mAmbient
                     ? String.format("%d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE))
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
-            canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            canvas.drawText(time, mXOffset, mYOffset, mTextPaint);
+
+            String weatherInfo = String.format("%s %s/%s", weatherDescription, maxTemp, minTemp);
+            canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), mTextPaint);
+            if (!mAmbient && null != weatherImage)
+            {
+                canvas.drawBitmap(weatherImage, mXOffset, (mYOffset + 120), mImagePaint);
+            }
         }
 
         /**
@@ -378,9 +400,46 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         //TODO modify to use wearable data layer
+        // see https://developer.android.com/training/wearables/watch-faces/information.html
         private void processDataFor(DataItem item)
         {
-            WeatherContract.WeatherEntry weatherEntry;
+            if (SunshineWearValues.SUNSHINE_WEAR_DATA_PATH.equals(item.getUri().getPath())) {
+                DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+                if (dataMap.containsKey(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC)) {
+                    weatherDescription = dataMap.getString(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC);
+                }
+                if (dataMap.containsKey(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP)) {
+                    maxTemp = dataMap.getString(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP);
+                }
+                if (dataMap.containsKey(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP)) {
+                    minTemp = dataMap.getString(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP);
+                }
+                if (dataMap.containsKey(SunshineWearValues.WEATHER_IMAGE)) {
+                    Asset weatherImageAsset = dataMap.getAsset(SunshineWearValues.WEATHER_IMAGE);
+                    weatherImage = loadBitmapFromAsset(weatherImageAsset);
+                }
+            }
+        }
+        public Bitmap loadBitmapFromAsset(Asset asset) {
+            if (asset == null) {
+                throw new IllegalArgumentException("Asset must be non-null");
+            }
+            ConnectionResult result =
+                    googleApiClient.blockingConnect(1000, TimeUnit.MILLISECONDS);
+            if (!result.isSuccess()) {
+                return null;
+            }
+            // convert asset into a file descriptor and block until it's ready
+            InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
+                    googleApiClient, asset).await().getInputStream();
+            googleApiClient.disconnect();
+
+            if (assetInputStream == null) {
+                Log.w("loadBitmapFromAsset", "Requested an unknown Asset.");
+                return null;
+            }
+            // decode the stream into a bitmap
+            return BitmapFactory.decodeStream(assetInputStream);
         }
     }
 }
