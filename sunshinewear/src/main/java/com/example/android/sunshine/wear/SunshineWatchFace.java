@@ -171,6 +171,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
+
+            //TODO implement call to device for inital sync to have data to display.
         }
 
         @Override
@@ -399,7 +401,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         }
 
-        //TODO modify to use wearable data layer
         // see https://developer.android.com/training/wearables/watch-faces/information.html
         private void processDataFor(DataItem item)
         {
@@ -425,7 +426,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 throw new IllegalArgumentException("Asset must be non-null");
             }
             ConnectionResult result =
-                    googleApiClient.blockingConnect(1000, TimeUnit.MILLISECONDS);
+                    googleApiClient.blockingConnect(5000, TimeUnit.MILLISECONDS);
             if (!result.isSuccess()) {
                 return null;
             }
