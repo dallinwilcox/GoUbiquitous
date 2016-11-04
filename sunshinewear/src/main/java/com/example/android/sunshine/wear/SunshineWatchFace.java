@@ -180,6 +180,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             putDataMapReq.getDataMap().putBoolean("Hello", true);
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(final DataApi.DataItemResult result) {
+                    if(result.getStatus().isSuccess()) {
+                        Log.d("SunshineWatchFace", "Data item set: " + result.getDataItem().getUri());
+                    }
+                }
+            });
         }
 
         @Override
