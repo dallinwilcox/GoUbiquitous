@@ -32,7 +32,7 @@ public class SunshineWearableListenerService extends WearableListenerService {
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        Log.v("SunshineWearListener", "received message" + messageEvent.toString());
+        Log.v("SunshineWearListener", "received message with path" + messageEvent.getPath());
         if (getString(R.string.wear_init_path).equals(messageEvent.getPath()))
         {
             Context context = getApplicationContext();

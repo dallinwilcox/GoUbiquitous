@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.sunshine.wear;
+package com.example.android.sunshine.app;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -159,13 +159,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
 
-            mYOffset = SunshineWatchFace.this.getResources().getDimension(R.dimen.digital_y_offset);
+            mYOffset = SunshineWatchFace.this.getResources().getDimension(com.example.android.sunshine.app.R.dimen.digital_y_offset);
 
             mBackgroundPaint = new Paint();
             //referenced http://stackoverflow.com/a/32149275/2169923
-            mBackgroundPaint.setColor(ContextCompat.getColor(SunshineWatchFace.this, R.color.background));
+            mBackgroundPaint.setColor(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.background));
 
-            timeTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, R.color.digital_text));
+            timeTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.digital_text));
             mImagePaint = new Paint();
             mCalendar = Calendar.getInstance();
 
@@ -176,7 +176,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .build();
 
             //TODO implement call to device for inital sync to have data to display.
-            PutDataMapRequest putDataMapReq = PutDataMapRequest.create(getString(R.string.wear_init_path));
+            PutDataMapRequest putDataMapReq = PutDataMapRequest.create(getString(com.example.android.sunshine.app.R.string.wear_init_path));
             putDataMapReq.getDataMap().putBoolean("Hello", true);
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
@@ -185,6 +185,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 public void onResult(final DataApi.DataItemResult result) {
                     if(result.getStatus().isSuccess()) {
                         Log.d("SunshineWatchFace", "Data item set: " + result.getDataItem().getUri());
+                    }
+                    else {
+                        Log.e("SunshineWatchFace", "Status is not success");
                     }
                 }
             });
@@ -251,11 +254,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             Resources resources = SunshineWatchFace.this.getResources();
             boolean isRound = insets.isRound();
             mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+                    ? com.example.android.sunshine.app.R.dimen.digital_x_offset_round : com.example.android.sunshine.app.R.dimen.digital_x_offset);
             float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+                    ? com.example.android.sunshine.app.R.dimen.digital_text_size_round : com.example.android.sunshine.app.R.dimen.digital_text_size);
             float weatherTextSize = resources.getDimension(isRound
-                    ? R.dimen.weather_text_size_round : R.dimen.weather_text_size);
+                    ? com.example.android.sunshine.app.R.dimen.weather_text_size_round : com.example.android.sunshine.app.R.dimen.weather_text_size);
             timeTextPaint.setTextSize(textSize);
         }
 
@@ -304,7 +307,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     // TODO: Add code to handle the tap gesture.
-                    Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
+                    Toast.makeText(getApplicationContext(), com.example.android.sunshine.app.R.string.message, Toast.LENGTH_SHORT)
                             .show();
                     break;
             }
@@ -342,7 +345,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 canvas.drawBitmap(weatherImage, mXOffset, (mYOffset + 120), mImagePaint);
             }
             else{
-                weatherInfo = getString(R.string.sync_pending);
+                weatherInfo = getString(com.example.android.sunshine.app.R.string.sync_pending);
                 canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), timeTextPaint);
             }
         }
@@ -409,6 +412,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         private final ResultCallback<DataItemBuffer> onConnectedResultCallback = new ResultCallback<DataItemBuffer>(){
             @Override
             public void onResult(DataItemBuffer dataItems){
+                Log.v("ResultCallback", dataItems.toString());
                 for (DataItem item : dataItems) {
                     processDataFor(item);
                 }
@@ -419,11 +423,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         
         @Override
         public void onConnectionSuspended(int i) {
-
+            Log.v("onConnectionSuspended","Connection suspended" + i);
         }
 
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+            Log.e("onConnectionFailed","Connection failed" + connectionResult);
 
         }
 
