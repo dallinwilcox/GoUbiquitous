@@ -390,6 +390,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onConnected(@Nullable Bundle bundle) {
+            Log.d("SunshineWatchFace","onConnected");
             Wearable.DataApi.addListener(googleApiClient, onWeatherDataChangedListener);
             Wearable.DataApi.getDataItems(googleApiClient).setResultCallback(onConnectedResultCallback);
         }
@@ -459,7 +460,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 throw new IllegalArgumentException("Asset must be non-null");
             }
             ConnectionResult result =
-                    googleApiClient.blockingConnect(5000, TimeUnit.MILLISECONDS);
+                    googleApiClient.blockingConnect(30000, TimeUnit.MILLISECONDS);
             if (!result.isSuccess()) {
                 return null;
             }

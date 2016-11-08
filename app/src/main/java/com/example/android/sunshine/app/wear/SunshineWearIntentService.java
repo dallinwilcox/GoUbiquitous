@@ -52,6 +52,7 @@ public class SunshineWearIntentService extends IntentService implements
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        Log.v("SunshineWearIntentSvc", "onHandleIntent");
         //Init Wear Data GoogleAPI, and handle if no wear is present by stopping the service
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {

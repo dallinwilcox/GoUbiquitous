@@ -43,7 +43,7 @@ public class SunshineWearListenerService extends WearableListenerService {
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.v(TAG, "dataChanged" + dataEvents);
+        Log.v(TAG, "dataChanged " + dataEvents);
 
         final List<DataEvent> events = FreezableUtils
                 .freezeIterable(dataEvents);
