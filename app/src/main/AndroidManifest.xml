@@ -134,8 +134,7 @@
         <!-- Wear Service -->
 
         <service android:name=".wear.SunshineWearIntentService" />
-
-        <service android:name=".wear.SunshineWearableListenerService">
+        <service android:name=".wear.SunshineWearListenerService">
         <intent-filter>
             <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
             <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />

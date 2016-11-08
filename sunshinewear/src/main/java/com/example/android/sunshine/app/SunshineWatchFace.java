@@ -177,7 +177,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             //TODO implement call to device for inital sync to have data to display.
             PutDataMapRequest putDataMapReq = PutDataMapRequest.create(getString(com.example.android.sunshine.app.R.string.wear_init_path));
-            putDataMapReq.getDataMap().putBoolean("Hello", true);
+            putDataMapReq.getDataMap().putLong("CurrentTime", System.currentTimeMillis());
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
             pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
@@ -414,6 +414,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             public void onResult(DataItemBuffer dataItems){
                 Log.v("ResultCallback", dataItems.toString());
                 for (DataItem item : dataItems) {
+                    Log.d("ResultCallback", "item:" + item);
+                    Log.d("ResultCallback", "item Data:" + item.getData());
                     processDataFor(item);
                 }
                 dataItems.release();

@@ -25,14 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 //referenced https://developers.google.com/android/reference/com/google/android/gms/wearable/WearableListenerService
 // https://developer.android.com/training/wearables/data-layer/events.html
-public class SunshineWearableListenerService extends WearableListenerService {
+public class SunshineWearListenerService extends WearableListenerService {
 
     public static final String TAG = "SunshineWearListener";
     private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        Log.v("SunshineWearListener", "received message with path" + messageEvent.getPath());
+        Log.v(TAG, "received message with path" + messageEvent.getPath());
         if (getString(R.string.wear_init_path).equals(messageEvent.getPath()))
         {
             Context context = getApplicationContext();
@@ -43,7 +43,7 @@ public class SunshineWearableListenerService extends WearableListenerService {
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.v(TAG, "received message" + dataEvents);
+        Log.v(TAG, "dataChanged" + dataEvents);
 
         final List<DataEvent> events = FreezableUtils
                 .freezeIterable(dataEvents);
