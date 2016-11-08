@@ -455,6 +455,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 }
             }
         }
+        //TODO convert to AsyncTask
         public Bitmap loadBitmapFromAsset(Asset asset) {
             if (asset == null) {
                 throw new IllegalArgumentException("Asset must be non-null");

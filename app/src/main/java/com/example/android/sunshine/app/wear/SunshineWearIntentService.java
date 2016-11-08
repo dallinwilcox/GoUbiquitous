@@ -15,6 +15,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -52,7 +53,7 @@ public class SunshineWearIntentService extends IntentService implements
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.v("SunshineWearIntentSvc", "onHandleIntent");
+        Log.v(TAG, "onHandleIntent");
         //Init Wear Data GoogleAPI, and handle if no wear is present by stopping the service
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
@@ -61,6 +62,7 @@ public class SunshineWearIntentService extends IntentService implements
                         Log.d(TAG, "onConnected: " + connectionHint);
                         // Now you can use the Data Layer API
                     }
+
                     @Override
                     public void onConnectionSuspended(int cause) {
                         Log.d(TAG, "onConnectionSuspended: " + cause);
@@ -72,6 +74,7 @@ public class SunshineWearIntentService extends IntentService implements
                         Log.d(TAG, "onConnectionFailed: " + result);
                         if (result.getErrorCode() == ConnectionResult.API_UNAVAILABLE) {
                             // The Wearable API is unavailable
+                            Log.d(TAG, "Stopping the service");
                             SunshineWearIntentService.this.stopSelf();
                         }
                     }
@@ -79,6 +82,7 @@ public class SunshineWearIntentService extends IntentService implements
                 // Request access only to the Wearable API
                 .addApi(Wearable.API)
                 .build();
+        googleApiClient.connect();
         // Get today's data from the ContentProvider
         String location = Utility.getPreferredLocation(this);
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
@@ -106,7 +110,7 @@ public class SunshineWearIntentService extends IntentService implements
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), weatherArtResourceId);
         Asset asset = createAssetFromBitmap(bitmap);
 
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(SUNSHINE_WEAR_DATA_PATH );
+        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(SUNSHINE_WEAR_DATA_PATH);
         DataMap putDataMap = putDataMapReq.getDataMap();
         putDataMap.putString(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC, description);
         putDataMap.putString(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP, formattedMaxTemperature);
@@ -116,6 +120,15 @@ public class SunshineWearIntentService extends IntentService implements
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult =
                 Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
+        DataApi.DataItemResult result = pendingResult.await();
+        if (result.getStatus().isSuccess()) {
+            Log.d(TAG, "Data item set: " + result.getDataItem().getUri());
+
+        }
+        else
+        {
+            Log.e(TAG, "Result was not success");
+        }
     }
 
     private static Asset createAssetFromBitmap(Bitmap bitmap) {
@@ -127,6 +140,6 @@ public class SunshineWearIntentService extends IntentService implements
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         //TODO Handle initial sync request based on wear device init.
-
+        Log.v(TAG, "onDataChanged" + dataEventBuffer);
     }
 }
