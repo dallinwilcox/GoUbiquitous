@@ -28,6 +28,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -127,6 +128,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         Paint mImagePaint;
         boolean mAmbient;
         Calendar mCalendar;
+
+        public void setWeatherImage(Bitmap weatherImage) {
+            this.weatherImage = weatherImage;
+        }
+
         Bitmap weatherImage;
         String minTemp;
         String maxTemp;
@@ -451,7 +457,32 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 }
                 if (dataMap.containsKey(SunshineWearValues.WEATHER_IMAGE)) {
                     Asset weatherImageAsset = dataMap.getAsset(SunshineWearValues.WEATHER_IMAGE);
-                    weatherImage = loadBitmapFromAsset(weatherImageAsset);
+                    BitmapWorkerTask task = new BitmapWorkerTask();
+                    task.execute(weatherImageAsset);
+                }
+            }
+        }
+        class BitmapWorkerTask extends AsyncTask<Asset, Void, Bitmap> {
+            private final WeakReference<SunshineWatchFace.Engine> engineReference;
+            public BitmapWorkerTask() {
+                engineReference = new WeakReference<>(Engine.this);
+            }
+
+            // Decode image in background.
+            @Override
+            protected Bitmap doInBackground(Asset... params) {
+                Asset asset = params[0];
+                return loadBitmapFromAsset(asset);
+            }
+
+            // Once complete, set bitmap safely
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                if (engineReference != null && bitmap != null) {
+                    final SunshineWatchFace.Engine engine = engineReference.get();
+                    if (bitmap != null) {
+                        engine.setWeatherImage(bitmap);
+                    }
                 }
             }
         }
