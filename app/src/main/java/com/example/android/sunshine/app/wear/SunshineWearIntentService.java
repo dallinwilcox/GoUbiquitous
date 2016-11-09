@@ -133,8 +133,9 @@ public class SunshineWearIntentService extends IntentService implements
 
     private static Asset createAssetFromBitmap(Bitmap bitmap) {
         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        //probably should figure out how to just make sure it always resolves mdpi, but scaling is easier
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, true);
-        scaledBitmap.compress(Bitmap.CompressFormat.PNG, 50, byteStream);
+        scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
         return Asset.createFromBytes(byteStream.toByteArray());
     }
 
