@@ -72,6 +72,7 @@ import java.util.concurrent.TimeUnit;
  * https://developer.android.com/training/wearables/watch-faces/
  * https://developer.android.com/training/wearables/data-layer/
  * https://catinean.com/2015/03/28/creating-a-watch-face-with-android-wear-api-part-2/
+ * https://developer.android.com/training/displaying-bitmaps/process-bitmap.html
  *
  *
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
