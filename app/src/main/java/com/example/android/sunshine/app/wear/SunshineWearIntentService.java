@@ -141,7 +141,6 @@ public class SunshineWearIntentService extends IntentService implements
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
-        //TODO Handle initial sync request based on wear device init.
         Log.v(TAG, "onDataChanged" + dataEventBuffer);
     }
 }

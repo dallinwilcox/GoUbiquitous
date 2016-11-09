@@ -81,6 +81,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
+
     /**
      * Update rate in milliseconds for interactive mode. We update once a second since seconds are
      * displayed in interactive mode.
@@ -171,7 +172,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             //referenced http://stackoverflow.com/a/32149275/2169923
             mBackgroundPaint.setColor(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.background));
 
-            timeTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.digital_text));
+            timeTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.digital_text), 0);
+            weatherTextPaint = createTextPaint(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.digital_text), SunshineWatchFace.this.getResources().getDimensionPixelSize(R.dimen.abc_text_size_small_material));
             mImagePaint = new Paint();
             mCalendar = Calendar.getInstance();
 
@@ -181,7 +183,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .addOnConnectionFailedListener(this)
                     .build();
 
-            //TODO implement call to device for inital sync to have data to display.
+            //call to device for inital sync to have data to display.
             PutDataMapRequest putDataMapReq = PutDataMapRequest.create(getString(com.example.android.sunshine.app.R.string.wear_init_path));
             putDataMapReq.getDataMap().putLong("CurrentTime", System.currentTimeMillis());
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
@@ -206,11 +208,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             super.onDestroy();
         }
 
-        private Paint createTextPaint(int textColor) {
+        private Paint createTextPaint(int textColor, float textSize) {
             Paint paint = new Paint();
             paint.setColor(textColor);
             paint.setTypeface(NORMAL_TYPEFACE);
             paint.setAntiAlias(true);
+            if (textSize != 0){
+                paint.setTextSize(textSize);
+            }
             return paint;
         }
 
@@ -340,20 +345,21 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
             canvas.drawText(time, mXOffset, mYOffset, timeTextPaint);
 
-            String weatherInfo;
+
             if (null != weatherDescription)
             {
-                weatherInfo = String.format("%s %s/%s", weatherDescription, maxTemp, minTemp);
+                String weatherInfo = String.format("%s %s/%s", weatherDescription, maxTemp, minTemp);
                 canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), weatherTextPaint);
             }
-
+            else
+            {
+                canvas.drawText("Sync Pending", mXOffset, (mYOffset + 60), weatherTextPaint);
+            }
             if (!mAmbient && null != weatherImage)
             {
                 canvas.drawBitmap(weatherImage, mXOffset + 80, (mYOffset + 80), mImagePaint);
             }
-            else{
-                canvas.drawText("Sync Pending", mXOffset, (mYOffset + 60), weatherTextPaint);
-            }
+
         }
 
         /**
@@ -486,7 +492,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 }
             }
         }
-        //TODO convert to AsyncTask
+        //Needs to be run off of the main thread
         public Bitmap loadBitmapFromAsset(Asset asset) {
             if (asset == null) {
                 throw new IllegalArgumentException("Asset must be non-null");
