@@ -341,18 +341,18 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             canvas.drawText(time, mXOffset, mYOffset, timeTextPaint);
 
             String weatherInfo;
-            if (mAmbient && null != weatherDescription)
+            if (null != weatherDescription)
             {
                 weatherInfo = String.format("%s %s/%s", weatherDescription, maxTemp, minTemp);
-                canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), timeTextPaint);
+                canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), weatherTextPaint);
             }
-            else if (!mAmbient && null != weatherImage)
+
+            if (!mAmbient && null != weatherImage)
             {
-                canvas.drawBitmap(weatherImage, mXOffset, (mYOffset + 120), mImagePaint);
+                canvas.drawBitmap(weatherImage, mXOffset + 80, (mYOffset + 80), mImagePaint);
             }
             else{
-                weatherInfo = getString(com.example.android.sunshine.app.R.string.sync_pending);
-                canvas.drawText(weatherInfo, mXOffset, (mYOffset + 60), timeTextPaint);
+                canvas.drawText("Sync Pending", mXOffset, (mYOffset + 60), weatherTextPaint);
             }
         }
 
