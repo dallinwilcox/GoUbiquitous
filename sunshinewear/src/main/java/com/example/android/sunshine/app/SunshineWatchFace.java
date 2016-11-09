@@ -351,7 +351,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             }
             else
             {
-                canvas.drawText("Sync Pending", mXOffset, (mYOffset + 60), weatherTextPaint);
+                canvas.drawText(getString(R.string.sync_pending), mXOffset, (mYOffset + 60), weatherTextPaint);
             }
             if (!mAmbient && null != weatherImage)
             {
