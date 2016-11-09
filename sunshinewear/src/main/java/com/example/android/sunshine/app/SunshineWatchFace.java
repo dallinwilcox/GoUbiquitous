@@ -166,8 +166,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
 
-            mYOffset = SunshineWatchFace.this.getResources().getDimension(com.example.android.sunshine.app.R.dimen.digital_y_offset);
-
             mBackgroundPaint = new Paint();
             //referenced http://stackoverflow.com/a/32149275/2169923
             mBackgroundPaint.setColor(ContextCompat.getColor(SunshineWatchFace.this, com.example.android.sunshine.app.R.color.background));
@@ -266,10 +264,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             boolean isRound = insets.isRound();
             mXOffset = resources.getDimension(isRound
                     ? com.example.android.sunshine.app.R.dimen.digital_x_offset_round : com.example.android.sunshine.app.R.dimen.digital_x_offset);
+            mYOffset = resources.getDimension(isRound
+                    ? com.example.android.sunshine.app.R.dimen.digital_y_offset_round : R.dimen.digital_y_offset);
             float textSize = resources.getDimension(isRound
                     ? com.example.android.sunshine.app.R.dimen.digital_text_size_round : com.example.android.sunshine.app.R.dimen.digital_text_size);
-            float weatherTextSize = resources.getDimension(isRound
-                    ? com.example.android.sunshine.app.R.dimen.weather_text_size_round : com.example.android.sunshine.app.R.dimen.weather_text_size);
             timeTextPaint.setTextSize(textSize);
         }
 

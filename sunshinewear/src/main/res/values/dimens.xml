@@ -6,5 +6,6 @@
     <dimen name="weather_text_size_round">35dp</dimen>
     <dimen name="digital_x_offset">15dp</dimen>
     <dimen name="digital_x_offset_round">25dp</dimen>
-    <dimen name="digital_y_offset">90dp</dimen>
+    <dimen name="digital_y_offset">60dp</dimen>
+    <dimen name="digital_y_offset_round">90dp</dimen>
 </resources>
